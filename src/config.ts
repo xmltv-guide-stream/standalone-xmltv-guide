@@ -18,6 +18,7 @@ export interface Config {
   scrollSpeed: number;        // grid scroll px/sec
   refreshMin: number;         // regenerate the window (restart ffmpeg) this often
   promoRotateSec: number;     // featured panel rotation interval
+  animateTimeChange: boolean; // classic time-bar scroll-up animation at slot changes
   themeId: string;
   fontFile: string;           // overrides the theme's fontFile if set
   themeOverride: Partial<GuideTheme>;
@@ -35,7 +36,7 @@ export function defaultConfig(): Config {
     xmltvRefreshMin: 30,
     offsetMin: -new Date().getTimezoneOffset(),
     video: { width: 1920, height: 1080, fps: 24 },
-    columns: 3, slotMinutes: 30, scrollSpeed: 60, refreshMin: 30, promoRotateSec: 30,
+    columns: 3, slotMinutes: 30, scrollSpeed: 60, refreshMin: 30, promoRotateSec: 30, animateTimeChange: true,
     themeId: "cable", fontFile: "", themeOverride: {},
     channels: { include: [], max: 0 },
     promoFolder: "", musicFolder: "",

@@ -78,6 +78,10 @@ the keys, if you edit `data/config.json` directly instead):
   restarts, continuing the same HLS playlist).
 - **video** – width/height/fps. **hls** – segment length and playlist size.
 - **columns / slotMinutes / scrollSpeed / promoRotateSec** – guide layout & motion.
+- **animateTimeChange** – at each :00/:30 slot change, play the classic cable-guide
+  time-change: the current scroll finishes, a new time bar rises with the new shows,
+  the old bar slides up and off, and the grid keeps scrolling under the new header.
+  Set false to just snap to the new window.
 - **themeId** (`cable`, `classic`, `mono`, `light`) + **fontFile** (point at a
   pixel/VCR TTF for the authentic look) + an advanced **themeOverride** JSON.
 - **promoFolder / musicFolder** – scanned recursively; trailers need an audio track.
@@ -96,8 +100,14 @@ the keys, if you edit `data/config.json` directly instead):
   via `art://` refs + the configured source token — never from a third-party cache.
 - The live clock uses the server's local time; set **Display TZ offset** to match
   the timezone your listings should read in.
-- The guide only advances its window every `refreshMin`; a brief HLS discontinuity
-  at each regeneration is normal and players handle it.
+- The guide advances its window at each :00/:30 slot boundary. A long-lived HLS
+  "packager" process owns `live.m3u8` and never restarts on a window change, so the
+  stream and client connections stay alive across the switch. The swap is
+  make-before-break: the next compositor is started and only cut over once it's
+  actually producing, while the old one keeps feeding the packager until that
+  instant — so there's no gap. The media sequence stays continuous (no endlist, no
+  reset) and each swap carries an `EXT-X-DISCONTINUITY` tag so players resync
+  cleanly. (Expect two `ffmpeg` processes normally, three briefly during a swap.)
 
 ## License
 

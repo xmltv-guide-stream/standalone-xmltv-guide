@@ -3,3 +3,5 @@ dist/
 data/
 *.log
 frame.png
+tf_*.png
+_trtest.mjs

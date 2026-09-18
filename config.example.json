@@ -9,6 +9,7 @@
   "scrollSpeed": 60,
   "refreshMin": 30,
   "promoRotateSec": 30,
+  "animateTimeChange": true,
   "themeId": "cable",
   "fontFile": "",
   "themeOverride": {},

@@ -342,6 +342,41 @@ export function renderHeaderSvg(colTimes: number[], layout: GuideLayout, offsetM
   return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${HH}" viewBox="0 0 ${W} ${HH}">${body}</svg>`;
 }
 
+/** Just the promo/featured backdrop (top area): gradient + promo/trailer box, height
+ *  = promoH. Drawn ON TOP during a transition so the outgoing time bar disappears
+ *  under it as it slides up. (The featured text/poster is a separate strip overlay.) */
+export function renderPromoAreaSvg(layout: GuideLayout, theme: GuideTheme): string {
+  const { width: W } = layout;
+  const promoH = guidePromoHeight(theme, layout.height);
+  const bv = theme.bevel ?? 3;
+  const promoText = theme.promoText || theme.headerText;
+  const promoBg = theme.promoBg || "#000010";
+  const g1 = shade(theme.header, 0.12), g2 = shade(theme.header, -0.35);
+  let body = `<defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${g1}"/><stop offset="1" stop-color="${g2}"/></linearGradient></defs>`;
+  body += `<rect x="0" y="0" width="${W}" height="${promoH}" fill="url(#pg)"/>`;
+  const pb = guidePromoBox(layout, theme);
+  body += bevel(pb.x, pb.y, pb.w, pb.h, promoBg, bv);
+  body += `<text x="${pb.x + pb.w / 2}" y="${pb.y + pb.h / 2 - 6}" font-size="40" font-weight="900" fill="${promoText}" text-anchor="middle" ${GRID_FONT}>PROMO / TRAILER</text>`;
+  body += `<text x="${pb.x + pb.w / 2}" y="${pb.y + pb.h / 2 + 40}" font-size="26" font-weight="700" fill="${shade(promoText, -0.25)}" text-anchor="middle" ${GRID_FONT}>(video plays here)</text>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${promoH}" viewBox="0 0 ${W} ${promoH}">${body}</svg>`;
+}
+
+/** Just the time bar (beveled cells + labels), height = tbH, transparent elsewhere,
+ *  so it can be overlaid and animated independently of the rest of the chrome. */
+export function renderTimeBarSvg(colTimes: number[], layout: GuideLayout, offsetMin: number, theme: GuideTheme): string {
+  const { width: W, columns } = layout;
+  const tbH = guideTimeBarHeight(theme);
+  const LW = theme.leftWidth, CW = (W - LW) / columns, bv = theme.bevel ?? 3, gap = 3;
+  const timeCell = theme.timeCell || theme.header;
+  let body = bevel(0, 0, LW - gap, tbH - gap, timeCell, bv);      // first cell (live clock sits here)
+  colTimes.forEach((t, c) => {
+    const x = LW + c * CW;
+    body += bevel(x, 0, CW - gap, tbH - gap, timeCell, bv);
+    body += `<text x="${x + 24}" y="${tbH / 2 + 14}" font-size="40" font-weight="900" fill="${theme.headerText}" ${GRID_FONT}>${esc(slotLabel(t, offsetMin))}</text>`;
+  });
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${tbH}" viewBox="0 0 ${W} ${tbH}">${body}</svg>`;
+}
+
 export function renderFeaturedStripSvg(picks: FeaturedPick[], layout: GuideLayout, theme: GuideTheme): string {
   const { width: W, height: FH } = layout;
   const bandH = guideFeaturedBandHeight(theme, FH);
