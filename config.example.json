@@ -1,0 +1,20 @@
+{
+  "port": 8501,
+  "xmltvSource": "https://example.com/epg.xml",
+  "xmltvRefreshMin": 30,
+  "offsetMin": -300,
+  "video": { "width": 1920, "height": 1080, "fps": 24 },
+  "columns": 3,
+  "slotMinutes": 30,
+  "scrollSpeed": 60,
+  "refreshMin": 30,
+  "promoRotateSec": 30,
+  "themeId": "cable",
+  "fontFile": "",
+  "themeOverride": {},
+  "channels": { "include": [], "max": 0 },
+  "promoFolder": "",
+  "musicFolder": "",
+  "sources": {},
+  "hls": { "segmentSec": 4, "listSize": 10 }
+}

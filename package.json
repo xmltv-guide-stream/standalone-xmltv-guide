@@ -1,0 +1,38 @@
+{
+  "name": "standalone-xmltv-guide",
+  "version": "1.0.0",
+  "description": "Turn any XMLTV source into a 1990s-style scrolling TV-guide channel and serve it as HLS. Self-contained Node service with a built-in config page.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "bin": { "standalone-xmltv-guide": "dist/server.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "tsc -p tsconfig.json && node dist/server.js"
+  },
+  "keywords": [
+    "xmltv",
+    "epg",
+    "hls",
+    "tv-guide",
+    "ffmpeg",
+    "iptv",
+    "prevue",
+    "ersatztv"
+  ],
+  "license": "MIT",
+  "author": "xmltv-guide-stream",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmltv-guide-stream/standalone-xmltv-guide.git"
+  },
+  "bugs": { "url": "https://github.com/xmltv-guide-stream/standalone-xmltv-guide/issues" },
+  "homepage": "https://github.com/xmltv-guide-stream/standalone-xmltv-guide#readme",
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "typescript": "^5.6.2"
+  }
+}

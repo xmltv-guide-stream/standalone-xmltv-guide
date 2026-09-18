@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>XMLTV Guide HLS — Config</title>
+<style>
+  :root { --bg:#0b0f17; --panel:#131b2b; --line:#243247; --text:#e8eef7; --muted:#8ea3bd; --accent:#4da3ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--line); background:#0e1420; position:sticky; top:0; }
+  header h1 { font-size:17px; margin:0; }
+  header .status { margin-left:auto; color:var(--muted); font-size:12.5px; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#f5a524; margin-right:6px; vertical-align:middle; }
+  .dot.ok { background:#57d38c; }
+  main { max-width:1000px; margin:0 auto; padding:20px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  fieldset { border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:0 0 16px; background:var(--panel); }
+  legend { padding:0 8px; color:var(--accent); font-weight:600; }
+  label { display:block; margin:10px 0; color:var(--muted); font-size:12.5px; }
+  label input, label select, label textarea { display:block; width:100%; margin-top:5px; padding:8px 10px; background:#0b1220; color:var(--text); border:1px solid var(--line); border-radius:7px; font:inherit; }
+  .row { display:flex; gap:12px; } .row > label { flex:1; }
+  textarea { min-height:70px; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  .actions { display:flex; gap:10px; align-items:center; margin:6px 0 20px; }
+  button { background:var(--accent); color:#04121f; border:0; padding:10px 18px; border-radius:8px; font-weight:600; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
+  a { color:var(--accent); }
+  .muted { color:var(--muted); font-size:12.5px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; max-height:160px; overflow:auto; padding:8px; border:1px solid var(--line); border-radius:7px; background:#0b1220; }
+  .chip { display:flex; align-items:center; gap:5px; font-size:12px; background:#16233a; padding:3px 8px; border-radius:12px; }
+  #log { background:#080c14; border:1px solid var(--line); border-radius:8px; padding:10px 12px; height:280px; overflow:auto; font-family:ui-monospace,Consolas,monospace; font-size:12px; white-space:pre-wrap; }
+  #log .l-ffmpeg{color:#ff8a80} #log .l-hls{color:#80d8ff} #log .l-guide,#log .l-featured{color:#c5e1a5} #log .l-xmltv{color:#e6c86e} #log .l-warn{color:#ffb74d}
+  .src-row { display:flex; gap:8px; margin:8px 0; }
+  .src-row input, .src-row select { padding:7px 9px; background:#0b1220; color:var(--text); border:1px solid var(--line); border-radius:7px; }
+  .full { grid-column:1 / -1; }
+  .toast { position:fixed; bottom:18px; right:18px; background:#173049; border:1px solid var(--accent); padding:10px 16px; border-radius:8px; opacity:0; transition:opacity .2s; }
+  .toast.show { opacity:1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📺 XMLTV Guide → HLS</h1>
+  <span class="status"><span id="dot" class="dot"></span><span id="statusText">…</span> · <a href="/live.m3u8" target="_blank">/live.m3u8</a></span>
+</header>
+<main>
+  <div class="actions">
+    <button id="save">Save &amp; restart</button>
+    <button class="ghost" id="reload">Reload guide now</button>
+    <span class="muted" id="hint">Edit settings, then Save. The stream restarts with the new config.</span>
+  </div>
+
+  <div class="grid">
+    <fieldset>
+      <legend>Source</legend>
+      <label>XMLTV source (file path or http/https URL)<input id="xmltvSource" placeholder="C:\guide\xmltv.xml  or  https://example.com/epg.xml" /></label>
+      <div class="row">
+        <label>Re-parse XMLTV (min)<input id="xmltvRefreshMin" type="number" min="1" /></label>
+        <label>Regenerate window (min)<input id="refreshMin" type="number" min="1" /></label>
+        <label>Display TZ offset (min)<input id="offsetMin" type="number" /></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Video / HLS</legend>
+      <div class="row">
+        <label>Width<input id="w" type="number" /></label>
+        <label>Height<input id="h" type="number" /></label>
+        <label>FPS<input id="fps" type="number" /></label>
+      </div>
+      <div class="row">
+        <label>HLS segment (sec)<input id="segmentSec" type="number" min="2" /></label>
+        <label>HLS list size<input id="listSize" type="number" min="3" /></label>
+        <label>Port<input id="port" type="number" /></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Layout</legend>
+      <div class="row">
+        <label>Columns (half-hours)<input id="columns" type="number" min="1" max="6" /></label>
+        <label>Slot minutes<input id="slotMinutes" type="number" min="5" /></label>
+      </div>
+      <div class="row">
+        <label>Scroll speed (px/s)<input id="scrollSpeed" type="number" min="10" /></label>
+        <label>Featured rotate (sec)<input id="promoRotateSec" type="number" min="5" /></label>
+      </div>
+      <label>Theme<select id="themeId"></select></label>
+      <label>Font file (TTF, overrides theme)<input id="fontFile" placeholder="C:\fonts\VCR_OSD_MONO.ttf" /></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Media windows</legend>
+      <label>Promo/trailer clips folder (recursive)<input id="promoFolder" placeholder="C:\Media\Trailers" /></label>
+      <label>Background music folder (recursive)<input id="musicFolder" placeholder="C:\Media\Guide Music" /></label>
+      <label>Max channels shown (0 = all)<input id="chMax" type="number" min="0" /></label>
+    </fieldset>
+
+    <fieldset class="full">
+      <legend>Channels to include (empty = all, in XMLTV order)</legend>
+      <div class="chips" id="chans"><span class="muted">Load an XMLTV source and Save to populate this list.</span></div>
+    </fieldset>
+
+    <fieldset class="full">
+      <legend>Poster sources (for art:// refs from compatible XMLTV — Plex / Jellyfin / Emby)</legend>
+      <div id="sources"></div>
+      <button class="ghost" id="addSrc" type="button">+ Add source</button>
+      <p class="muted">Most XMLTV feeds put a poster URL directly in each programme, which works with no config here. These are only needed for internal <code>art://</code> references.</p>
+    </fieldset>
+
+    <fieldset class="full">
+      <legend>Advanced theme override (JSON, merged over the selected theme)</legend>
+      <textarea id="themeOverride" placeholder='{ "accent": "#FFD400", "promoHeight": 560 }'></textarea>
+    </fieldset>
+
+    <fieldset class="full">
+      <legend>Logs</legend>
+      <div id="log"></div>
+    </fieldset>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let cfg = null, channels = [];
+
+async function jget(u){ const r = await fetch(u); return r.json(); }
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); }
+
+function fillSources(sources){
+  const box = $("sources"); box.innerHTML = "";
+  const entries = Object.entries(sources||{});
+  if(!entries.length) box.appendChild(mkSrcRow("", {type:"plex",address:"",token:""}));
+  for(const [id,s] of entries) box.appendChild(mkSrcRow(id,s));
+}
+function mkSrcRow(id,s){
+  const d=document.createElement("div"); d.className="src-row";
+  d.innerHTML = `<input placeholder="source id (e.g. 8)" style="width:120px" value="${id||""}">
+    <select><option value="plex">plex</option><option value="jellyfin">jellyfin</option><option value="emby">emby</option></select>
+    <input placeholder="http://server:32400" style="flex:1" value="${s.address||""}">
+    <input placeholder="token / api key" style="flex:1" value="${s.token||""}">
+    <button class="ghost" type="button">✕</button>`;
+  d.querySelector("select").value = s.type||"plex";
+  d.querySelector("button").onclick = ()=> d.remove();
+  return d;
+}
+function collectSources(){
+  const out={};
+  for(const row of $("sources").querySelectorAll(".src-row")){
+    const [idI,,addrI,tokI]=row.querySelectorAll("input,select");
+    const sel=row.querySelector("select");
+    const id=idI.value.trim(); if(!id) continue;
+    out[id]={type:sel.value, address:addrI.value.trim(), token:tokI.value.trim()};
+  }
+  return out;
+}
+
+function fillChannels(){
+  const box=$("chans"); box.innerHTML="";
+  if(!channels.length){ box.innerHTML='<span class="muted">No channels parsed yet — set a valid XMLTV source and Save.</span>'; return; }
+  const inc = new Set((cfg.channels.include)||[]);
+  for(const c of channels){
+    const l=document.createElement("label"); l.className="chip"; l.style.margin=0;
+    l.innerHTML=`<input type="checkbox" style="width:auto" ${inc.has(c.id)?"checked":""} value="${c.id}"> ${c.number?("#"+c.number+" "):""}${c.name}`;
+    box.appendChild(l);
+  }
+}
+function collectChannels(){
+  return [...$("chans").querySelectorAll("input:checked")].map(i=>i.value);
+}
+
+function apply(c){
+  cfg=c;
+  $("xmltvSource").value=c.xmltvSource; $("xmltvRefreshMin").value=c.xmltvRefreshMin; $("refreshMin").value=c.refreshMin; $("offsetMin").value=c.offsetMin;
+  $("w").value=c.video.width; $("h").value=c.video.height; $("fps").value=c.video.fps;
+  $("segmentSec").value=c.hls.segmentSec; $("listSize").value=c.hls.listSize; $("port").value=c.port;
+  $("columns").value=c.columns; $("slotMinutes").value=c.slotMinutes; $("scrollSpeed").value=c.scrollSpeed; $("promoRotateSec").value=c.promoRotateSec;
+  $("fontFile").value=c.fontFile||""; $("promoFolder").value=c.promoFolder||""; $("musicFolder").value=c.musicFolder||""; $("chMax").value=c.channels.max||0;
+  $("themeOverride").value = c.themeOverride && Object.keys(c.themeOverride).length ? JSON.stringify(c.themeOverride,null,2) : "";
+  fillSources(c.sources); fillChannels();
+}
+function collect(){
+  let override={}; try{ override = $("themeOverride").value.trim()? JSON.parse($("themeOverride").value):{}; }catch(e){ toast("Theme override isn't valid JSON"); throw e; }
+  return {
+    ...cfg,
+    xmltvSource:$("xmltvSource").value.trim(), xmltvRefreshMin:+$("xmltvRefreshMin").value, refreshMin:+$("refreshMin").value, offsetMin:+$("offsetMin").value,
+    video:{width:+$("w").value, height:+$("h").value, fps:+$("fps").value},
+    hls:{segmentSec:+$("segmentSec").value, listSize:+$("listSize").value}, port:+$("port").value,
+    columns:+$("columns").value, slotMinutes:+$("slotMinutes").value, scrollSpeed:+$("scrollSpeed").value, promoRotateSec:+$("promoRotateSec").value,
+    themeId:$("themeId").value, fontFile:$("fontFile").value.trim(), themeOverride:override,
+    promoFolder:$("promoFolder").value.trim(), musicFolder:$("musicFolder").value.trim(),
+    channels:{include:collectChannels(), max:+$("chMax").value},
+    sources:collectSources(),
+  };
+}
+
+async function refreshStatus(){
+  try{
+    const s=await jget("/api/status");
+    $("statusText").textContent = s.status + (s.hls?" · HLS live":" · HLS not ready");
+    $("dot").className = "dot" + (s.status==="streaming" && s.hls?" ok":"");
+  }catch{}
+  try{
+    const {lines}=await jget("/api/logs?n=300");
+    const el=$("log"); const atBottom = el.scrollHeight-el.scrollTop-el.clientHeight < 40;
+    el.innerHTML = lines.map(l=>{
+      const cls = /\[ffmpeg\]/.test(l)?"l-ffmpeg": /\[hls\]/.test(l)?"l-hls": /\[xmltv\]/.test(l)?"l-xmltv": /not found|FAILED|error|MISSING/i.test(l)?"l-warn": /\[guide\]|\[featured\]/.test(l)?"l-guide":"";
+      const t=(l.match(/T(\d{2}:\d{2}:\d{2})/)||[])[1]||"";
+      const rest=l.replace(/^\S+\s/,"");
+      return `<div class="${cls}"><span style="color:#5c6b7a">${t}</span>  ${rest.replace(/[<>&]/g,x=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[x]))}</div>`;
+    }).join("");
+    if(atBottom) el.scrollTop=el.scrollHeight;
+  }catch{}
+}
+
+async function init(){
+  const themes=await jget("/api/themes");
+  $("themeId").innerHTML = themes.map(t=>`<option value="${t.id}">${t.label}</option>`).join("");
+  cfg=await jget("/api/config");
+  channels=await jget("/api/channels");
+  $("themeId").value = cfg.themeId;
+  apply(cfg);
+  $("addSrc").onclick=()=> $("sources").appendChild(mkSrcRow("",{type:"plex",address:"",token:""}));
+  $("save").onclick=async()=>{ const body=collect(); const r=await fetch("/api/config",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(body)}); cfg=await r.json(); toast("Saved — restarting stream"); setTimeout(async()=>{channels=await jget("/api/channels"); fillChannels();},2500); };
+  $("reload").onclick=async()=>{ await fetch("/api/reload",{method:"POST"}); toast("Reloading guide"); };
+  refreshStatus(); setInterval(refreshStatus,3000);
+}
+init();
+</script>
+</body>
+</html>
