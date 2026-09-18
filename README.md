@@ -30,11 +30,29 @@ npm run build
 npm start
 ```
 
-Then open `http://localhost:8501/` to configure it, and point your player /
-restreamer at `http://<host>:8501/live.m3u8`.
+Then point your player / restreamer at `http://<host>:8501/live.m3u8`, and open the
+config page below to set things up.
 
-Set the **XMLTV source** (a local path or an `http(s)://` URL) and click
-**Save & restart**. Everything else has sensible defaults.
+## Configuration (built-in web page)
+
+**Open `http://localhost:8501/` in a browser** (replace `localhost` with the
+server's host/IP if it's on another machine; the port is the `port` setting,
+default `8501`). This is the primary way to configure the service — you don't have
+to hand-edit any files.
+
+From that page you can:
+
+- Set the **XMLTV source** (a local path or an `http(s)://` URL) and how often it refreshes.
+- Change **video/HLS** settings (resolution, fps, segment length), **layout & motion**
+  (columns, scroll speed, featured-rotation interval), and the **theme** + custom **font**.
+- Point at **promo/trailer** and **music** folders, choose **which channels** to include,
+  and add **Plex/Jellyfin/Emby** credentials (only needed for `art://` poster refs).
+- Watch a live **status** indicator and a scrolling **log** panel.
+
+Click **Save & restart** and the stream relaunches with the new settings — no
+restart of the process needed. Everything has sensible defaults, so the only thing
+you *must* set is the XMLTV source. (Settings are persisted to `data/config.json`;
+see the reference below if you'd rather edit that file directly.)
 
 ## Consuming the HLS
 
@@ -50,10 +68,10 @@ re-mux it elsewhere without re-encoding (direct copy):
 ffmpeg -i http://<host>:8501/live.m3u8 -c copy -f mpegts udp://...
 ```
 
-## Configuration
+## Settings reference
 
-All settings live in `data/config.json` (created on first run) and are editable
-from the web page. Highlights:
+Every setting is editable from the web page above; this is what each one does (and
+the keys, if you edit `data/config.json` directly instead):
 
 - **xmltvSource** – file path or URL. **xmltvRefreshMin** – how often to re-read it.
 - **refreshMin** – how often the visible time window is regenerated (ffmpeg
